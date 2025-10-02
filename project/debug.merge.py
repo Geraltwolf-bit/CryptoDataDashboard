@@ -18,8 +18,8 @@ print("\n")
 inf = get_cpi()
 print(f"get_cpi returned {type(inf)}")
 print("\n")
-inflation = clean_index(inf)
-print(f"clean_index returned {type(inflation)}")
+inflation = figure_inflation(inf)
+print(f"figure_inflation returned {type(inflation)}")
 
 
 
