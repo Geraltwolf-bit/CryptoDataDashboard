@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[37]:
+# In[2]:
 
 
 import os
@@ -10,7 +10,7 @@ import pandas as pd
 from dotenv import load_dotenv
 load_dotenv()
 
-def get_cpi():
+def get_inflation():
     key = os.getenv('api_key')
     url = f"https://api.stlouisfed.org/fred/series/observations?series_id=CPIAUCSL&api_key={key}&file_type=json&sort_order=desc"
     try:
@@ -23,27 +23,31 @@ def get_cpi():
         data = data.iloc[0:2]
         data['value'] = pd.to_numeric(data['value'], errors = 'coerce')
         data['date'] = pd.to_datetime(data['date'], format='%Y-%m-%d')
+        print(f"data is type: {type(data)}")
         return data
     except Exception as e:
         print(f"Error getting Consumer Price Index: {e}")
         return None
 
 
-# In[38]:
+# In[4]:
 
 
-cpi = get_cpi()
+cpi = get_inflation()
 cpi
 
 
-# In[39]:
+# In[5]:
 
+
+from datetime import datetime
 
 def figure_inflation(data):
     if data.empty:
         print("No inflation data")
         return None
     try:
+        estimate = 0
         first_value = float(round(data['value'].iloc[0], 2))
         last_value = float(round(data['value'].iloc[1], 2))
         monthly_inflation_rate = ((first_value / last_value) - 1) * 100
@@ -51,22 +55,24 @@ def figure_inflation(data):
         annualized_inflation = ((1 + monthly_inflation_rate / 100) ** 12 - 1) * 100
         annualized_inflation = float(round(annualized_inflation, 2))
         if annualized_inflation <= 2:
-            return "Low"
+            estimate = "Low"
         elif annualized_inflation <= 5:
-            return "Moderate"
+            estimate = "Moderate"
         elif annualized_inflation > 5:
-            return "High"
+            estimate = "High"
+        inflation_estimate = estimate
+        date = datetime.now().date()
+        inflation = pd.DataFrame({'date': [date], 'inflation': [inflation_estimate]})
+        print(f"data is type: {type(inflation)}")
+        return inflation
     except Exception as e:
         print(f"Error figuring inflation: {e}")
         return None
 
 
-# In[40]:
+# In[6]:
 
 
-from datetime import datetime
-inflation_estimate = figure_inflation(cpi)
-date = datetime.now().date()
-inflation = pd.DataFrame({'date': [date], 'inflation': [inflation_estimate]})
+inflation = figure_inflation(cpi)
 inflation
 

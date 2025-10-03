@@ -1,18 +1,20 @@
 import pandas as pd
-from fear_greed_index import get_index, clean_index
+
+from fear_greed_index import get_index, figure_index
+from inflation import get_inflation, figure_inflation
 from stockmarket import get_stockmarket, figure_stockmarket
-from inflation import get_cpi, figure_inflation
 
 ind = get_index()
-index = clean_index(ind)
+index = figure_index(ind)
+index['date'] = index['date'].dt.date
 
-inf = get_cpi()
-inflation = figure_inflation(inf)
+infl = get_inflation()
+inflation = figure_inflation(infl)
 
 st = get_stockmarket()
 stockmarket = figure_stockmarket(st)
 
-df = index.merge(inflation, on='date', how = 'inner')
-df = df.merge(stockmarket, on='date', how = 'inner')
+df = pd.merge(index, inflation, on = 'date')
+df = pd.merge(df, stockmarket, on = 'date')
 
-df
+print(df)
