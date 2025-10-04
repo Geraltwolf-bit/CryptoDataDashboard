@@ -1,1 +1,1 @@
-CREATE DATABASE dashboard;
+sCREATE DATABASE dashboard;
