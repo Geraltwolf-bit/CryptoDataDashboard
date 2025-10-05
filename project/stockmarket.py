@@ -28,7 +28,6 @@ def get_stockmarket(ticker_name: str="^GSPC", period: str="1mo") -> Union[pd.Dat
         if data.empty:
             logger.info("No stock market data found for the ticker: %s", ticker_name)
             return None
-        print(f"data is type: {type(data)}")
         return data
     except Exception as e:
         logger.error(f"Error getting stock market data: %s", e)
