@@ -6,6 +6,7 @@ from sqlalchemy import create_engine
 from fear_greed_index import get_index, preprocess_index
 from inflation import get_inflation, preprocess_inflation
 from stockmarket import get_stockmarket, preprocess_stockmarket
+from recommendation_engine import get_recommendation
 from constants import FEAR_GREED_INDEX_URL, cpi_url, api_key_cpi
 
 logging.basicConfig(level=logging.ERROR)
@@ -24,6 +25,7 @@ def get_df():
         stockmarket = preprocess_stockmarket(sm)
         df = pd.merge(index, inflation, on = 'date')
         df = pd.merge(df, stockmarket, on = 'date')
+        df['recommended_action'] = df.apply(lambda row: get_recommendation(row['index'], row['inflation'], row['stockmarket']), axis = 1)
         return df
     except Exception as e:
         logger.error("Error %s", e)
@@ -38,9 +40,11 @@ def save_to_database(df: pd.DataFrame):
         database_url = 'postgresql://admin:admin@localhost:5432/mydb'
         engine = create_engine(database_url)
 
+        check_date = df['date'].iloc[-1]
+
         #check if the data for the current date already exists in the base:
         existing_date_query = "SELECT date from dashboard_data WHERE date = %s"
-        existing_date = pd.read_sql(existing_date_query, engine, params=(df['date'].iloc[-1],))
+        existing_date = pd.read_sql(existing_date_query, engine, params=(check_date,))
         
         #if data for the current date is absent, insert the data
         if existing_date.empty:
@@ -50,11 +54,10 @@ def save_to_database(df: pd.DataFrame):
                 if_exists='append',
                 index = False
             )
-            logger.info(f"Data saved for {df['date'].iloc[0]}")
-        
+            logger.info(f"Data saved for {check_date}")
         #if data for the current data is present, show it
         else:
-            logger.info(f"Data for {df['date'].iloc[0]} already exists.")
+            logger.info(f"Data for {check_date} already exists.")
 
     except Exception as e:
         logger.error("Error saving Dataframe to database: %s", e)
